@@ -4,5 +4,9 @@ integrations:
   vendors:
     one:
       api_base_url: mock_api_one:80
+      auth_url: /auth
+      api_url: /patients
     two:
       api_base_url: mock_api_two:80
+      auth_url: /auth_tokens
+      api_url: /records
