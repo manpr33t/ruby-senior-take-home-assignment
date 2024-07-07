@@ -2,6 +2,7 @@ require 'json'
 require 'uri'
 require 'net/http'
 require 'redis'
+require 'vandelay/util/cache'
 
 module Vandelay
   module Integrations
@@ -21,8 +22,8 @@ module Vandelay
 
       def fetch_api(record_id, server)
         return {} if server.nil? || server == ''
-        redis = Redis.new(host: 'redis', port: 6379)
-        cached_record = redis.get("record_#{record_id}_#{server}")
+        # fetch cached response from redis via key
+        cached_record = Vandelay::Util::Cache.fetch("record_#{record_id}_#{server}")
         if cached_record.nil?
           token = fetch_access_token(server)
           api_url = Vandelay.config["integrations"]["vendors"]["#{server}"]["api_url"]
@@ -34,7 +35,7 @@ module Vandelay
           puts "We hit the mock server #{server}, not from cache"
 
           # Cache response in Redis for 10 minutes
-          redis.setex("record_#{record_id}_#{server}", 600, data)  # 600 seconds = 10 minutes
+          Vandelay::Util::Cache.set("record_#{record_id}_#{server}", data, 600)  # 600 seconds = 10 minutes
 
           cached_record = data
         end
